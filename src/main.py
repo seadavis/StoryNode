@@ -3,6 +3,7 @@ import sys
 from spacy.matcher import Matcher
 from transforms.text_transforms import remove_patterns
 from printing.print_tokens import print_token_attributes
+from spacy import displacy
 import os
 import functools
 import operator
@@ -11,52 +12,36 @@ def main(argv):
     
     text_file = argv[1]
     print(text_file)
-    s = os.getcwd()
     f = open(text_file)
     file_lines = [f.read()]
     nlp = spacy.load("en_core_web_sm")
-
-    fluff_pattern = [[{"POS":"AUX"}],
-                    [{"POS":"ADP"}], [{"POS":"DET"}], [{"POS": "PUNCT"}]]
-   
-    index = 0
-    for text in file_lines:
-        doc = nlp(text)
-        removed_text = remove_patterns(fluff_pattern, "Fluff", nlp, doc)
-
-        relation_pattern = []
-
-        build_relation_patterns("VERB", relation_pattern)
-        build_relation_patterns("ADJ", relation_pattern)
-        build_relation_patterns("ADV", relation_pattern)          ,
-
+    matcher = Matcher(nlp.vocab)
     
-        doc = nlp(removed_text)
-      
-        matcher = Matcher(nlp.vocab)
-        matcher.add("Pattern" + str(index), relation_pattern)
+
+
+    for line in file_lines:
+    
+
+        
+        fluff_pattern = [[{"POS":"VERB"}, {"POS": "PART", "OP": "*"}, {"POS": "ADV", "OP":"*"}], 
+                        [{"POS": "VERB"},  {"POS": "ADP", "OP": "*"}, {"POS": "DET", "OP":"*"},
+                        {"POS": "AUX", "OP": "*"}, {"POS": "NOUN", "OP": "*"}, {"POS": "PRON", "OP": "*"}, 
+                        {"POS": "PROPN", "OP":"*"}, {"POS": "ADJ", "OP":"*"}, {"POS": "ADV", "OP": "*"}]]
+        matcher.add("Fluff", fluff_pattern)
+
+        doc = nlp(line)
+    
+    
         matches = matcher(doc)
-        
-        print_token_attributes(doc)
-
-        seen_text = []
-     
         for match_id, start, end in matches:
-            span = doc[start:end]
-            if span.text not in seen_text:
-                seen_text.append(span.text)
-                print(span.text)
-        index = index + 1
+            string_id = nlp.vocab.strings[match_id]  # Get string representation
+            span = doc[start:end]  # The matched span
+            print(match_id, string_id, start, end, span.text)
+
+        for token in doc:
+            print(token.text, token.pos_, token.dep_, token.i)
 
         
-def build_relation_patterns(mid_pos, patterns):
-    patterns.append([{"POS": "PROPN", "OP": "+"}, {"POS": mid_pos}, {"POS":"NOUN"}])
-    patterns.append([{"POS": "NOUN"}, {"POS": mid_pos}, {"POS":"NOUN"}]) 
-    patterns.append([{"POS": "PROPN"}, {"POS": mid_pos}, {"POS":"PROPN"}])
-    patterns.append([{"POS": "NOUN"}, {"POS": mid_pos}, {"POS":"PROPN"}])
-
-
-    
 
 
 if __name__ == "__main__":

@@ -8,12 +8,15 @@ import functools
 import operator
 
 def main(argv):
-    
+    """
     text_file = argv[1]
     print(text_file)
     s = os.getcwd()
     f = open(text_file)
     file_lines = [f.read()]
+    """
+
+    
     nlp = spacy.load("en_core_web_sm")
 
     fluff_pattern = [[{"POS":"AUX"}],
