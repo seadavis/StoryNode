@@ -1,10 +1,11 @@
 import spacy
 import sys
 from spacy.matcher import Matcher
-from transforms.text_transforms import remove_patterns
-from printing.print_tokens import print_token_attributes
+from src.transforms.text_transforms import remove_patterns
+from src.printing.print_tokens import print_token_attributes
 from spacy import displacy
-from core.relation_extraction import *
+from src.core.relation_extraction import *
+from src.core.document import *
 import os
 import functools
 import operator
@@ -15,11 +16,9 @@ def main(argv):
     print(text_file)
     f = open(text_file)
     file_lines = f.readlines()
-    nlp = spacy.load("en_core_web_sm")
-    matcher = Matcher(nlp.vocab)
 
     for line in file_lines:
-        doc = nlp(line)
+        doc = Document(line)
 
         print("Original Text: " + line)
         relations = extract_relations(doc)

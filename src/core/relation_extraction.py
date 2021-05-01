@@ -1,27 +1,20 @@
 import spacy
 from spacy.matcher import Matcher
-
-class TextSpan:
-
-    def __init__(self, sentence, start_index, end_index):
-        self.sentence = sentence
-        self.start_index = start_index
-        self.end_index = end_index
-
-    @property
-    def length(self):
-        return self.end_index - self.start_index
-
-    def __eq__(self, other):
-        return self.sentence == other.sentence and self.start_index == self.start_index and self.end_index == self.end_index
+from .span import TextSpan
 
 class Relation:
 
     def __init__(self, left_phrase, relation_phrase, right_phrase):
-        """[summary]
+        """Constructs a relation of the form
+        (left_phrase, relation_phrase, right_phrase)
+
+        Examples:
+        (Sean, runs to, mall), 
+        (Gandalf, shall not, pass), 
+        (the dog, flies, at midnight)
 
         Args:
-            left_phrase (TextSpan): the lefside phrse
+            left_phrase (TextSpan): the leftside phrse
             relation_phrase (TextSpan): the relation phrase
             right_phrase (TextSpan): the right-side phrase of the relation
         """
@@ -37,7 +30,7 @@ class Relation:
 
 
 def construct_text_span(doc, start, end):
-    span = doc[start:end]
+    span = doc.doc[start:end]
     return TextSpan(span.text, start, end)
 
 def construct_text_spans(doc, matches):
@@ -74,20 +67,22 @@ def get_relation_spans(doc):
     """extracts the complete relations from the doc
 
     Args:
-        doc ([type]): [description]
+        doc (Document): the document we are using to gather
+        the middle portion of the relations
 
     Returns:
         [Relation]: the complete set of relations found from the documentation
     """
-    nlp = spacy.load("en_core_web_sm")
-    matcher = Matcher(nlp.vocab)
+    
+    
     verbs = get_verbs(doc)
     fluff_pattern = [[{"POS":"VERB"}, {"POS": "PART", "OP": "*"}, {"POS": "ADV", "OP":"*"}], 
                         [{"POS": "VERB"},  {"POS": "ADP", "OP": "*"}, {"POS": "DET", "OP":"*"},
                         {"POS": "AUX", "OP": "*"},  
                         {"POS": "ADJ", "OP":"*"}, {"POS": "ADV", "OP": "*"}]]
+    matcher = doc.matcher
     matcher.add("Fluff", fluff_pattern)
-    syntactical_constraint_matches = construct_text_spans(doc, matcher(doc))
+    syntactical_constraint_matches = construct_text_spans(doc, matcher(doc.doc))
 
     relation_spans = []
     for verb in verbs:
@@ -100,14 +95,13 @@ def get_relation_spans(doc):
         
 
 def get_verbs(doc):
-    nlp = spacy.load("en_core_web_sm")
-    matcher = Matcher(nlp.vocab)
+    matcher = doc.matcher
     fluff_pattern = [[{"POS":"VERB"}]]
     matcher.add("Fluff", fluff_pattern)
-    matches = matcher(doc)
+    matches = matcher(doc.doc)
     verbs = []
     for match_id, start, end in matches:
-        verbs.append(doc[start:end].text)
+        verbs.append(doc.doc[start:end].text)
     return verbs
 
 def find_nearest_pattern(doc, pattern, text_span, search_before):
@@ -122,12 +116,11 @@ def find_nearest_pattern(doc, pattern, text_span, search_before):
         search_before (bool): if true, then we want to find the nearest pattern that occurs,
                 before text_span. Otherwise finds the nearest pattern after text_span
     """
-    nlp = spacy.load("en_core_web_sm")
-    matcher = Matcher(nlp.vocab)
+    matcher = doc.matcher
     matcher.add("PatternNear", pattern)
-    matches = matcher(doc)
+    matches = matcher(doc.doc)
     nearest_pattern = None
-    spans = construct_text_spans(doc, matches)
+    spans = construct_text_spans(doc.doc, matches)
     sorted_spans = sorted(spans, key=lambda s : s.start_index)
 
     spans_to_search = []
@@ -199,15 +192,16 @@ def merge_overlapping_consecutive_word_span(text_spans):
             merged_cons_spans[current_index] = potential_overlap
             next_index = next_index + 1
 
-    if len(merged_overlapping_spans) == 0:
-        return merged_cons_spans
-
+  
     if next_index - current_index > 1:
         merged_overlapping_spans.append(merged_cons_spans[current_index])
 
     last_cons_index = len(merged_cons_spans) - 1
     if not (last_cons_index in overlapped_indices):
         merged_overlapping_spans.append(merged_cons_spans[last_cons_index])
+
+    if len(merged_overlapping_spans) == 0:
+        return merged_cons_spans
 
     return merged_overlapping_spans
             
@@ -223,7 +217,7 @@ def merge_overlapping_spans(span_1, span_2):
         span_2 (TextSpan)
     """
     if span_1.start_index > span_2.start_index:
-        raise Exception("span_1 comes after span_2 when overlapping spans")
+        raise Exception("span_1 comes after span_2 when merging overlapping spans")
 
     if span_2.start_index <= span_1.end_index and span_2.end_index <= span_1.end_index:
         return span_1

@@ -1,6 +1,6 @@
-from core.entity import Reference
+from src.core.entity import Reference
 from spacy.matcher import Matcher
-from utilities.string_functions import remove
+from src.utilities.string_functions import remove
 
 def remove_patterns(patterns, pattern_name, nlp, doc):
 

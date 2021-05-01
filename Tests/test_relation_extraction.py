@@ -1,11 +1,11 @@
 import spacy
 import sys
 from spacy.matcher import Matcher
+from src.core.document import Document
 from src.core.relation_extraction import *
 
 def test_one_nearest_noun_before():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall")
+    doc = Document("Sean is going to the mall")
     nearest_pattern = find_nearest_pattern(doc, 
                         [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], 
                         TextSpan("going", 2, 3), 
@@ -13,51 +13,43 @@ def test_one_nearest_noun_before():
     assert nearest_pattern == TextSpan("Sean", 0, 1)
 
 def test_no_nearest_noun_after():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("running throwing hates")
+    doc = Document("running throwing hates")
     nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}]], TextSpan("throwing", 2, 3), False)
     assert nearest_pattern is None
 
 def test_multiple_nearest_noun_before():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall, and Rochelle is flying a Kite")
+    doc = Document("Sean is going to the mall, and Rochelle is flying a Kite")
     nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("flying", 9, 10), True)
     assert nearest_pattern == TextSpan("Rochelle", 7, 8)
 
 def test_one_nearest_noun_after():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall")
+    doc = Document("Sean is going to the mall")
     nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("going", 2, 3), False)
     assert nearest_pattern == TextSpan("mall", 5, 6)
 
 def test_multiple_nearest_noun_after():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall, and Rochelle is flying a Kite")
+    doc = Document("Sean is going to the mall, and Rochelle is flying a Kite")
     nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("going", 2, 3), False)
     assert nearest_pattern == TextSpan("mall", 5, 6)
 
 def test_empty_doc_get_verb_returns_none():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("")
+    doc = Document("")
     verbs = get_verbs(doc)
     assert len(verbs) == 0
 
 def test_no_verbs_get_verbs_returns_none():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is The mall")
+    doc = Document("Sean is The mall")
     verbs = get_verbs(doc)
     assert len(verbs) == 0
 
 def test_one_verb_get_verbs_returns_verb():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall")
+    doc = Document("Sean is going to the mall")
     verbs = get_verbs(doc)
     assert len(verbs) == 1
     assert verbs[0] == "going"
 
 def test_multiple_verbs():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean is going to the mall. Rochelle is running errands. Ducks are flying south")
+    doc = Document("Sean is going to the mall. Rochelle is running errands. Ducks are flying south")
     verbs = get_verbs(doc)
     assert len(verbs) == 3
     assert verbs[0] == "going"
@@ -68,6 +60,12 @@ def test_none_overlapping_merge_returns_same_list():
     spans = [TextSpan("hello", 1, 2), TextSpan("weretak", 5, 12)]
     condensed_spans = merge_overlapping_consecutive_word_span(spans)
     assert len(condensed_spans) == 2
+
+def test_one_span_start_and_ends_before():
+    spans = [TextSpan("is writing a blog", 2, 6), TextSpan("writing a blog on a", 3, 8)]
+    condensed_spans = merge_overlapping_consecutive_word_span(spans)
+    assert len(condensed_spans) == 1
+    assert condensed_spans[0] == TextSpan("is writing a blog on a", 2, 8)
 
 def test_one_consecutive():
      spans = [TextSpan("going to", 3, 5), TextSpan("the mall", 6, 7), TextSpan("Davey", 120, 121)]
@@ -150,19 +148,16 @@ def test_one_find_longest_span_returns_single():
     assert longest_span == TextSpan("going", 3, 4)
 
 def test_simple_examples():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Sean, is going to the mall")
+    doc = Document("Sean, is going to the mall")
     relations = extract_relations(doc)
     assert str(relations[0]) == "(Sean, going to the, mall)"
 
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("Elizabeth was glad to be taken to her immediately")
+    doc = Document("Elizabeth was glad to be taken to her immediately")
     relations = extract_relations(doc)
     assert str(relations[0]) == "(Elizabeth, taken to, her)"
 
 def test_multiple_examples():
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp("In July 2012, Ancestry.com found a strong likelihood that Dunham was descended from John Punch")
+    doc = Document("In July 2012, Ancestry.com found a strong likelihood that Dunham was descended from John Punch")
     relations = extract_relations(doc)
     assert str(relations[0]) == "(Ancestry.com, found a strong, likelihood)"
     assert str(relations[1]) == "(Dunham, descended from, John)"

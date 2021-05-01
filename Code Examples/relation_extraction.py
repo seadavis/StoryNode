@@ -1,10 +1,11 @@
 import spacy
 import sys
+sys.path.insert(1, '../src/')
+
 from spacy.matcher import Matcher
-from transforms.text_transforms import remove_patterns
-from printing.print_tokens import print_token_attributes
+from src.printing.print_tokens import print_token_attributes
 from spacy import displacy
-from core.relation_extraction import *
+from src.core.relation_extraction import *
 import os
 import functools
 import operator
