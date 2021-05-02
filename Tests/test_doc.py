@@ -14,11 +14,27 @@ def test_one_to_one_replacement():
     new_text = doc.print()
     assert new_text == "Python code hello the cleanest code around unlike C++ which is garbage nonsense"
 
-    new_span = doc.span(2, 3)
-    old_span = doc.span(4, 5)
-    assert new_span.sentence == "hello"
-    assert old_span.sentence == "cleanest"
-  
+
+def test_multiple_replacements():
+
+    ample_text = "Python code is the cleanest code around unlike C++ which is garbage nonsense"
+    doc = Document(sample_text)
+    span = doc.span(5, 6)
+    span2 = doc.span(12, 13)
+    span3 = doc.span(8, 10)
+
+    doc2 = Document("the joker fights guys batman is evil")
+    doc3 = Document("highlighting textbooks for fun")
+    span_swap = doc2.span(5, 6)
+    span_swap2 = doc3.span(0, 1)
+    span_swap3 = doc3.span(1, 3)
+
+    doc.swap(span, span_swap)
+    doc.swap(span2, span_swap2)
+    doc.swap(span3, span_swap3)
+
+    new_text = doc.print()
+    assert new_text == "Python code is the cleanest batman textbooks for C++ which is garbage highlighting"
 
 def test_one_to_one_replacement_same_start_end():
     sample_text = "Python code is the cleanest code around unlike C++ which is garbage nonsense"
@@ -39,10 +55,6 @@ def test_n_to_n_replacement():
     doc.swap(span, span_swap)
     new_text = doc.print()
 
-    new_span = doc.span(3, 6)
-    old_span = doc.span(9, 11)
-    assert new_span.sentence == "a two year old"
-    assert old_span.sentence == "which is"
     assert new_text == "cutting paper like a two year old unlike C++ which is garbage nonsense"
 
 def test_n_to_n_replacement_same_start_end():
@@ -65,11 +77,6 @@ def test_shorter_replacement():
     new_text = doc.print()
     assert new_text == "Python code is the down dog which is garbage nonsense"
 
-    new_span = doc.span(4, 6)
-    old_span = doc.span(7, 10)
-    assert new_span.sentence == "down dog"
-    assert old_span.sentence == "which is garbage"
-
 
 def test_longer_replacement():
     sample_text = "Python code is the cleanest code around unlike C++ which is garbage nonsense"
@@ -81,10 +88,6 @@ def test_longer_replacement():
     new_text = doc.print()
     assert new_text == "Python code is the cleanest code around unlike button up jacket young man its cold outside is garbage nonsense"
 
-    new_span = doc.span(7, 11)
-    old_span = doc.span(16, 19)
-    assert new_span.sentence == "unlike button up jacket young"
-    assert old_span.sentence == "is garbage nonsense"
 
 def test_original_still_prints_after_replacement():
     sample_text = "Python code is the cleanest code around unlike C++ which is garbage nonsense"
@@ -109,8 +112,3 @@ def test_swap_twice():
     doc.swap(span, second_span_swap)
     new_text = doc.print()
     assert new_text == "Python code is the larger than life off which is garbage nonsense"
-
-    new_span = doc.span(4, 7)
-    old_span = doc.span(7, 10)
-    assert new_span.sentence == "larger than life off"
-    assert old_span.sentence == "off which is"

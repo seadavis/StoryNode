@@ -16,8 +16,9 @@ def main(argv):
         span = doc[start:end]  # The matched span
         print(match_id, string_id, start, end, span.text)
     
-    doc[0:1] = "goodbye"
-
+    for token in doc:
+        print(token)
+    
     print(doc[0:5])
 
 
