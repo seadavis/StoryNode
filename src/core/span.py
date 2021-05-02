@@ -24,6 +24,9 @@ class TextSpan:
 
     def join(self, other):
 
+        if not self.intersects(other):
+            return None
+
         min_start = min(self.start_index, other.start_index)
         max_end = max(self.end_index, other.end_index)
         
@@ -39,3 +42,20 @@ class TextSpan:
     """    
     def subset(self, start_index, end_index):
         return TextSpan(self.span.doc[start_index:end_index])
+
+    """
+    Returns true if the given span intersects with this span.
+    False otherwise.
+    """
+    def intersects(self, other):
+        if self.start_index >= other.start_index and self.start_index <= other.end_index:
+            return True
+        if self.end_index >= other.start_index and self.end_index <= other.end_index:
+            return True
+        if other.start_index >= self.start_index and other.start_index <= self.end_index:
+            return True
+        if other.end_index >= self.start_index and other.end_index <= self.end_index:
+            return True
+        return False
+        
+        

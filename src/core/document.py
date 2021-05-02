@@ -42,8 +42,5 @@ class Document:
     start - the minimal index form the start of the span
     end - the maximum inex of the swap span
     """
-    def get_swap_span(self, start, end):
-        return None
-
-    def add_to_swap_list(self, span):
+    def get_swap_intersections(self, start, end):
         return None

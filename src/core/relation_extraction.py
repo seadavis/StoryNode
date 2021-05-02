@@ -133,8 +133,6 @@ def find_nearest_pattern(doc, pattern, text_span, search_before):
     return spans_to_search[0]
 
 
-
-
 def merge_overlapping_consecutive_word_span(text_spans):
     """Merges two spans into one span iff they are
     consecutive end_index=start_index or they overlap
@@ -145,39 +143,16 @@ def merge_overlapping_consecutive_word_span(text_spans):
         text_spans ([type]): the span containing the word
     """
     sorted_spans = sorted(text_spans, key=lambda s : s.start_index)
-    removal_indices = []
-    merged_cons_spans = []
-
-    # first merge the consecutive spans
-    for index in range(len(sorted_spans) - 1):
-
-        span = sorted_spans[index]
-
-        if not (index in removal_indices):
-
-            next_index = index + 1
-            next_span = sorted_spans[next_index]
-
-            if span.end_index == next_span.start_index:
-                removal_indices.append(next_index)
-                merged_cons_spans.append(span.join(next_span))
-            else:
-                merged_cons_spans.append(span)
-
-    last_index = len(sorted_spans) - 1
-    if not (last_index in removal_indices):
-        merged_cons_spans.append(sorted_spans[last_index])
-
     current_index = 0
     next_index = 1
     merged_overlapping_spans = []
     overlapped_indices = []
 
-    while next_index <= len(merged_cons_spans) - 1:
+    while next_index <= len(sorted_spans) - 1:
 
-        span = merged_cons_spans[current_index]
-        next_span = merged_cons_spans[next_index]
-        potential_overlap = merge_overlapping_spans(span, next_span)
+        span = sorted_spans[current_index]
+        next_span = sorted_spans[next_index]
+        potential_overlap = span.join(next_span)
 
         if potential_overlap is None:
             current_index = next_index
@@ -185,46 +160,21 @@ def merge_overlapping_consecutive_word_span(text_spans):
             merged_overlapping_spans.append(span)
         else:
             overlapped_indices.append(next_index)
-            merged_cons_spans[current_index] = potential_overlap
+            sorted_spans[current_index] = potential_overlap
             next_index = next_index + 1
 
   
     if next_index - current_index > 1:
-        merged_overlapping_spans.append(merged_cons_spans[current_index])
+        merged_overlapping_spans.append(sorted_spans[current_index])
 
-    last_cons_index = len(merged_cons_spans) - 1
+    last_cons_index = len(sorted_spans) - 1
     if not (last_cons_index in overlapped_indices):
-        merged_overlapping_spans.append(merged_cons_spans[last_cons_index])
+        merged_overlapping_spans.append(sorted_spans[last_cons_index])
 
     if len(merged_overlapping_spans) == 0:
         return merged_cons_spans
 
     return merged_overlapping_spans
-            
-                
-def merge_overlapping_spans(span_1, span_2):
-    """merges the two spans iff and only if they
-    are overlapping otherwise returns None
-
-    We assume span_1.start_index <= span_2.start_index
-
-    Args:
-        span_1 (TextSpan)
-        span_2 (TextSpan)
-    """
-    if span_1.start_index > span_2.start_index:
-        raise Exception("span_1 comes after span_2 when merging overlapping spans")
-
-    if span_2.start_index <= span_1.end_index and span_2.end_index <= span_1.end_index:
-        return span_1.join(span_2)
-
-    elif span_2.start_index <= span_1.end_index:
-
-        return span_1.join(span_2)
-
-    else:
-        return None
-
 
 
 def find_latest_span(text_spans):
