@@ -29,14 +29,10 @@ class Relation:
         return f'({self.left_phrase.sentence}, {self.relation_phrase.sentence}, {self.right_phrase.sentence})'
 
 
-def construct_text_span(doc, start, end):
-    span = doc.doc[start:end]
-    return TextSpan(span.text, start, end)
-
 def construct_text_spans(doc, matches):
     ret_spans = []
     for match_id, start, end in matches:
-        ret_spans.append(construct_text_span(doc, start, end))
+        ret_spans.append(doc.span(start, end))
     return ret_spans
 
 def extract_relations(doc):
@@ -120,7 +116,7 @@ def find_nearest_pattern(doc, pattern, text_span, search_before):
     matcher.add("PatternNear", pattern)
     matches = matcher(doc.doc)
     nearest_pattern = None
-    spans = construct_text_spans(doc.doc, matches)
+    spans = construct_text_spans(doc, matches)
     sorted_spans = sorted(spans, key=lambda s : s.start_index)
 
     spans_to_search = []
@@ -162,9 +158,9 @@ def merge_overlapping_consecutive_word_span(text_spans):
             next_index = index + 1
             next_span = sorted_spans[next_index]
 
-            if span.end_index + 1 == next_span.start_index:
+            if span.end_index == next_span.start_index:
                 removal_indices.append(next_index)
-                merged_cons_spans.append(TextSpan(span.sentence + " " + next_span.sentence, span.start_index, next_span.end_index))
+                merged_cons_spans.append(span.join(next_span))
             else:
                 merged_cons_spans.append(span)
 
@@ -220,15 +216,11 @@ def merge_overlapping_spans(span_1, span_2):
         raise Exception("span_1 comes after span_2 when merging overlapping spans")
 
     if span_2.start_index <= span_1.end_index and span_2.end_index <= span_1.end_index:
-        return span_1
+        return span_1.join(span_2)
 
     elif span_2.start_index <= span_1.end_index:
 
-        relative_span_1_end = span_1.end_index - span_2.start_index
-        span_2_words = span_2.sentence.split()
-        remaining_words = span_2_words[(relative_span_1_end):len(span_2_words)]
-        entire_string = " ".join(remaining_words)
-        return TextSpan(span_1.sentence + " " + entire_string, span_1.start_index, span_2.end_index)
+        return span_1.join(span_2)
 
     else:
         return None

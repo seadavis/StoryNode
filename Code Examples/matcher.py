@@ -1,3 +1,11 @@
+import spacy
+import sys
+from spacy.matcher import Matcher
+from spacy import displacy
+import os
+import functools
+import operator
+
 def main(argv):
     nlp = spacy.load("en_core_web_sm")
     text_file = argv[1]

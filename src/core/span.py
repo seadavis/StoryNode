@@ -1,31 +1,41 @@
 class TextSpan:
 
-    def __init__(self, sentence, start_index, end_index):
-        self.sentence = sentence
-        self.start_index = start_index
-        self.end_index = end_index
+    def __init__(self, span):
+        self.span = span
 
     @property
     def length(self):
         return self.end_index - self.start_index
 
+    @property
+    def sentence(self):
+        return self.span.text
+
+    @property
+    def start_index(self):
+        return self.span.start
+    
+    @property
+    def end_index(self):
+        return self.span.end
+
     def __eq__(self, other):
         return self.sentence == other.sentence and self.start_index == self.start_index and self.end_index == self.end_index
 
-    """
-    Gives a deep copy of the text span
-    """
-    def copy(self):
-        return None
-    
-    """
+    def join(self, other):
 
-    Replaces the text starting at start to be other,
-    widening if needed.
-
-    other - the other text span to replace either this span or this entire span with
-    start - the index to start the replacing. 0-based.
+        min_start = min(self.start_index, other.start_index)
+        max_end = max(self.end_index, other.end_index)
+        
+        return TextSpan(self.span.doc[min_start:max_end])
 
     """
-    def replace(self, other, start):
-        return ""
+    Takes the subset of the start_index, end_index
+    start_index - the starting index of the subset, relative
+    to the spans parent document
+
+    end_index - the ending index of the subset, relative 
+    to the spans partner document
+    """    
+    def subset(self, start_index, end_index):
+        return TextSpan(self.span.doc[start_index:end_index])

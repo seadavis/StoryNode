@@ -8,29 +8,29 @@ def test_one_nearest_noun_before():
     doc = Document("Sean is going to the mall")
     nearest_pattern = find_nearest_pattern(doc, 
                         [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], 
-                        TextSpan("going", 2, 3), 
+                        TextSpan(doc.doc[2:3]), 
                         True)
-    assert nearest_pattern == TextSpan("Sean", 0, 1)
+    assert nearest_pattern == TextSpan(doc.doc[0:1])
 
 def test_no_nearest_noun_after():
     doc = Document("running throwing hates")
-    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}]], TextSpan("throwing", 2, 3), False)
+    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}]], doc.span(2, 3), False)
     assert nearest_pattern is None
 
 def test_multiple_nearest_noun_before():
     doc = Document("Sean is going to the mall, and Rochelle is flying a Kite")
-    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("flying", 9, 10), True)
-    assert nearest_pattern == TextSpan("Rochelle", 7, 8)
+    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], doc.span(9,10), True)
+    assert nearest_pattern == doc.span(8, 9)
 
 def test_one_nearest_noun_after():
     doc = Document("Sean is going to the mall")
-    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("going", 2, 3), False)
-    assert nearest_pattern == TextSpan("mall", 5, 6)
+    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], doc.span(2, 3), False)
+    assert nearest_pattern == doc.span(5, 6)
 
 def test_multiple_nearest_noun_after():
     doc = Document("Sean is going to the mall, and Rochelle is flying a Kite")
-    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], TextSpan("going", 2, 3), False)
-    assert nearest_pattern == TextSpan("mall", 5, 6)
+    nearest_pattern = find_nearest_pattern(doc, [[{"POS":"NOUN"}], [{"POS": "PROPN"}], [{"POS": "PRON"}]], doc.span(2, 3), False)
+    assert nearest_pattern == doc.span(5, 6)
 
 def test_empty_doc_get_verb_returns_none():
     doc = Document("")
@@ -57,57 +57,46 @@ def test_multiple_verbs():
     assert verbs[2] == "flying"
 
 def test_none_overlapping_merge_returns_same_list():
-    spans = [TextSpan("hello", 1, 2), TextSpan("weretak", 5, 12)]
+    doc = Document("Hello sean I'm giving you a high give")
+    spans = [doc.span(0, 1), doc.span(3, 5)]
     condensed_spans = merge_overlapping_consecutive_word_span(spans)
     assert len(condensed_spans) == 2
 
 def test_one_span_start_and_ends_before():
-    spans = [TextSpan("is writing a blog", 2, 6), TextSpan("writing a blog on a", 3, 8)]
+    doc = Document("Sean is writing a blog on a saturday")
+    spans = [doc.span(2, 6), doc.span(3, 8)]
     condensed_spans = merge_overlapping_consecutive_word_span(spans)
     assert len(condensed_spans) == 1
-    assert condensed_spans[0] == TextSpan("is writing a blog on a", 2, 8)
+    assert condensed_spans[0] == doc.span(2, 8)
 
 def test_one_consecutive():
-     spans = [TextSpan("going to", 3, 5), TextSpan("the mall", 6, 7), TextSpan("Davey", 120, 121)]
+     doc = Document("Sean is going to the mall")
+     spans = [doc.span(0, 2), doc.span(2, 3), doc.span(5, 6)]
      condensed_spans = merge_overlapping_consecutive_word_span(spans)
      assert len(condensed_spans) == 2
-     assert TextSpan("going to the mall", 3, 7) == condensed_spans[0]
-     assert TextSpan("Davey", 120, 121) == condensed_spans[1]
+     assert doc.span(0, 3) == condensed_spans[0]
+     assert doc.span(5, 6) == condensed_spans[1]
 
 def test_one_overlap_and_one_consecutive_merge_returns_condensed():
-    spans = [TextSpan("hello", 1, 2), 
-            TextSpan("my aunt and", 5, 8), 
-            TextSpan("the king with nobles clothes on hats", 9, 16), 
-            TextSpan("and me the king with nobles clothes", 7, 14)]
+
+    doc = Document("hello my aunt and me the king with nobles clothes on hats")
+    spans = [doc.span(0, 1), 
+            doc.span(1, 4), 
+            doc.span(9, 11),
+            doc.span(6, 12)]
     condensed_spans = merge_overlapping_consecutive_word_span(spans)
     assert len(condensed_spans) == 2
-    assert condensed_spans[1] == TextSpan("my aunt and me the king with nobles clothes on hats", 5, 16)
+    assert condensed_spans[1] == doc.span(6, 12)
 
 def test_multiple_overlaps_and_multiple_consecutive_merge_returns_condensed():
-    spans = [TextSpan("going", 3, 4), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7),
-            TextSpan("taken to her immediately", 18, 22), TextSpan("to her", 19, 21), TextSpan("I was", 16, 18)]
+    doc = Document("word word word going to the mall and titanic I was taken to her immediately bannana gorilla")
+    spans = [doc.span(3, 4), doc.span(3, 5), doc.span(3, 7),
+            doc.span(11, 15), doc.span(12, 14), doc.span(9, 11)]
     condensed_spans = merge_overlapping_consecutive_word_span(spans)
     assert len(condensed_spans) == 2
-    assert condensed_spans[0] == TextSpan("going to the mall", 3, 7)
-    assert condensed_spans[1] == TextSpan("I was taken to her immediately", 16, 22)
+    assert condensed_spans[0] == doc.span(3, 7)
+    assert condensed_spans[1] == doc.span(9, 15)
 
-
-def test_overlap_non_adjacent_still_condenses():
-    spans = [TextSpan("going", 3, 4), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7),
-            TextSpan("taken to her immediately", 18, 22), TextSpan("to her", 19, 20), TextSpan("I was", 16, 17)]
-    condensed_spans = merge_overlapping_consecutive_word_span(spans)
-    assert len(condensed_spans) == 2
-    assert condensed_spans[0] == TextSpan("going to the mall", 3, 7)
-    assert condensed_spans[1] == TextSpan("I was taken to her immediately", 16, 22)
-
-def test_consecutive_non_adjacent_still_condenses():
-    spans = [TextSpan("going", 3, 4), 
-            TextSpan("taken to her immediately", 18, 22), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7), TextSpan("I was", 16, 18)]
-    
-    condensed_spans = merge_overlapping_consecutive_word_span(spans)
-    assert len(condensed_spans) == 2
-    assert condensed_spans[0] == TextSpan("going to the mall", 3, 7)
-    assert condensed_spans[1] == TextSpan("I was taken to her immediately", 16, 22)
 
 def test_empty_find_longest_span_returns_null():
     spans = []
@@ -119,33 +108,6 @@ def test_empty_find_earliest_returns_null():
     earliest_span = find_earliest_span(spans)
     assert earliest_span is None
 
-def test_find_earliest():
-    spans = [TextSpan("going", 3, 4), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7),
-            TextSpan("taken to her immediately", 18, 22), TextSpan("to her", 19, 20), TextSpan("I was", 16, 17)]
-    earliest_span = find_earliest_span(spans)
-    assert earliest_span == TextSpan("going", 3, 4)
-
-def test_empty_find_latest_returns_null():
-    spans = []
-    latest_span = find_latest_span(spans)
-    assert latest_span is None
-
-def test_find_latest():
-    spans = [TextSpan("going", 3, 4), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7),
-            TextSpan("taken to her immediately", 18, 22), TextSpan("to her", 19, 20), TextSpan("I was", 16, 17)]
-    latest_span = find_latest_span(spans)
-    assert latest_span == TextSpan("taken to her immediately", 18, 22)
-
-def test_non_empty_find_longest_span_returns_longest():
-    spans = [TextSpan("going", 3, 4), TextSpan("going to", 3, 5), TextSpan("going to the mall", 3, 7),
-            TextSpan("taken to her immediately tomorrow", 18, 23), TextSpan("to her", 19, 20), TextSpan("I was", 16, 17)]
-    longest_span = find_longest_span(spans)
-    assert longest_span == TextSpan("taken to her immediately tomorrow", 18, 23)
-
-def test_one_find_longest_span_returns_single():
-    spans = [TextSpan("going", 3, 4)]
-    longest_span = find_longest_span(spans)
-    assert longest_span == TextSpan("going", 3, 4)
 
 def test_simple_examples():
     doc = Document("Sean, is going to the mall")
