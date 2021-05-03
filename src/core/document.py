@@ -18,11 +18,11 @@ class SwapSpan:
 
     @property
     def swap_start(self):
-        return self.swapped_span.swap_start
+        return self.swapped_span.start_index
 
     @property
     def swap_end(self):
-        return self.swapped_span.swap_end
+        return self.swapped_span.end_index
 
     def swapped_text(self):
         return self.new_span.sentence
@@ -52,6 +52,8 @@ class Document:
 
     """
         Swaps span_1 and span_2 widening if needed.
+
+        Does not support swapping the same span twice
 
         span_1 the span currently in the document.
         span_2 the span being swapped into span_1

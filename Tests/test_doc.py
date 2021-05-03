@@ -98,17 +98,3 @@ def test_original_still_prints_after_replacement():
     doc.swap(span, span_swap)
     old_text = doc.print(True)
     assert old_text == sample_text
-
-def test_swap_twice():
-    sample_text = "Python code is the cleanest code around unlike C++ which is garbage nonsense"
-    doc = Document(sample_text)
-    span = doc.span(4, 9)
-    doc2 = Document("down dog get off of the couch")
-    span_swap = doc2.span(0, 4)
-    doc.swap(span, span_swap)
-
-    doc3 = Document("elvis was much larger than life")
-    second_span_swap = doc3.span(3, 6)
-    doc.swap(span, second_span_swap)
-    new_text = doc.print()
-    assert new_text == "Python code is the larger than life off which is garbage nonsense"
