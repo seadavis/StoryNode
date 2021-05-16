@@ -29,6 +29,28 @@ class Relation:
         return f'({self.left_phrase.sentence}, {self.relation_phrase.sentence}, {self.right_phrase.sentence})'
 
 
+class RelationCollection:
+
+    def __init__(self, relations):
+        self.relations = relations
+
+    @property
+    def left_phrases(self):
+        return None
+
+    @property
+    def right_phrases(self):
+        return None
+
+    @property
+    def relation_phrases(self):
+        return None
+
+    def join(self, other):
+        return None
+
+
+
 def construct_text_spans(doc, matches):
     ret_spans = []
     for match_id, start, end in matches:

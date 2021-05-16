@@ -4,6 +4,12 @@ from spacy.matcher import Matcher
 from src.core.document import Document
 from src.core.relation_extraction import *
 
+def test_condensed_spans_are_less():
+    doc = Document("Hello sean I'm giving you a high give")
+    spans = [doc.span(0, 1), doc.span(3, 5)]
+    condensed_spans = merge_overlapping_consecutive_word_span(spans)
+    assert len(condensed_spans) < len(spans)
+
 def test_one_nearest_noun_before():
     doc = Document("Sean is going to the mall")
     nearest_pattern = find_nearest_pattern(doc, 
