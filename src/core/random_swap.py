@@ -7,12 +7,14 @@ def random_swap(doc, doc_relations, swap_relations):
     return None
 
 
-def get_joined_relatons(docs):
+def get_joined_relations(docs):
     return None
 
-def some_func(int1):
+"""
+Gives a dictionary of the
+given set of relations, indexed by a tuple
+of the form (left_phrase_type, right_phrase_type)
+"""
+def group_relations(relations):
+    return None
 
-    if int1 > 0:
-        return int1+2
-    else:
-        return -1*int1+2

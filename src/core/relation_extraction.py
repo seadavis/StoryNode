@@ -23,8 +23,12 @@ class Relation:
         self.right_phrase = right_phrase
 
     def __eq__(self, other):
-        return self.left_phrase == other.left_phrase and self.relation_phrase == other.relation_phrase and self.right_phrase == other.right_phrase
-    
+        return self.left_phrase == other.left_phrase and \
+            self.relation_phrase == other.relation_phrase and \
+                self.right_phrase == other.right_phrase
+
+
+
     def __str__(self):
         return f'({self.left_phrase.sentence}, {self.relation_phrase.sentence}, {self.right_phrase.sentence})'
 
@@ -34,19 +38,13 @@ class RelationCollection:
     def __init__(self, relations):
         self.relations = relations
 
-    @property
-    def left_phrases(self):
+    def add(self, span):
         return None
 
-    @property
-    def right_phrases(self):
+    def remove(self, span):
         return None
 
-    @property
-    def relation_phrases(self):
-        return None
-
-    def join(self, other):
+    def get_all_relations_by_type(self, entity_type):
         return None
 
 

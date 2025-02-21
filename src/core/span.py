@@ -1,3 +1,5 @@
+TYPE_WILD_CARD = "*"
+
 class TextSpan:
 
     def __init__(self, span):
@@ -14,7 +16,24 @@ class TextSpan:
     @property
     def start_index(self):
         return self.span.start
+
+    @property
+    def ent_type(self):
+
+        if (self.end_index - self.start_index) > 1 :
+            return TYPE_WILD_CARD
+
+        ent_type = self.span.doc[self.start_index].ent_type_
+
+        if ent_type == '':
+            return TYPE_WILD_CARD
+        
+        return ent_type
     
+    @property
+    def span_doc(self):
+        return self.span
+
     @property
     def end_index(self):
         return self.span.end
